@@ -1,0 +1,40 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+# 대회 키트용 Codex 프로젝트 설정 — 과제 폴더 맨 위 .codex/config.toml 로 옮기고, codex 첫 실행 때 폴더 신뢰(trust)에 동의해야 적용된다
+# 검증: codex 0.164(윈도우) · 0.163(WSL) — --strict-config · 키맵 충돌 검사 통과 (2026-10-29)
+# 키맵에 충돌 · 오타가 있어도 0.163 화면은 거부하지 않고 뜬다 — 그 단축키만 조용히 안 먹을 수 있다(2026-10-31 실측). 고친 뒤 codex 를 띄워 ? 단축키 목록으로 확인
+# 적용 확인(2026-10-31 · 연습 IDE): 이 키들로 띄우면 상태줄이 9칸 · 기록 보기가 ^o(기본값은 상태줄 «모델 · 폴더» · ^t) · --strict-config 통과(모르는 키 없음)
+# 근거: 공식 설정 문서 · codex 소스 태그 0.164 / 0.163 조사(2026-10-29)
+
+# 대회 중 업데이트 안내로 시간을 쓰지 않게
+check_for_update_on_startup = false
+
+# 데스크톱 화면 조작 도구는 대회 금지 사항(자동 조작)이라 끔 — 나머지 도구는 그대로(유저 설문 판단4-6 · 10/29)
+[features]
+computer_use = false
+
+# 서브에이전트가 또 서브를 부르지 못하게 — 동시 개수는 제한하지 않는다(유저 결정 10/29)
+[agents]
+max_depth = 1
+
+[tui]
+# 창이 30분 넘게 비활성이면 모델을 불러 요약을 만든다 — 두 세션 운영 때 토큰 낭비라 끔(/recap 은 손으로 가능)
+auto_recap = false
+show_tooltips = false
+# 휠 한 칸에 움직이는 줄 수 — 최근 기본값이 3 → 1 로 바뀌어 대화 기록 스크롤이 느림 · 10 은 너무 빨라 8(유저 지정 10/30) · 0.163 · 0.164 둘 다 있는 설정
+mouse_scroll_speed = 8.0
+# 상태줄 9개 — 모델+강도 · 승인 모드 · 작업 폴더 · 맥락 쓴 % · 실행 상태 · 쓴 토큰 · 누적 입력 · 누적 출력 · 계획 진행
+# 사용 한도 칸은 API 키 방식이면 빈칸이라 뺌 · 프로젝트 경로는 대회에서 작업 폴더와 같아 뺌(유저 설문 판단4-4 · 10/29)
+status_line = ["model-with-reasoning", "approval-mode", "current-dir", "context-used", "run-state", "used-tokens", "total-input-tokens", "total-output-tokens", "task-progress"]
+
+# ======= 단축키 — Claude Code 와 맞춤 =======
+# 대화 기록 보기 = Ctrl+O · 마지막 답 복사 = Alt+C · 기록 화면 닫기 = Ctrl+O 추가 (2026-10-27)
+[tui.keymap.global]
+open_transcript = "ctrl-o"
+copy = "alt-c"
+
+[tui.keymap.pager]
+close_transcript = ["ctrl-o", "ctrl-t"]
+
+# 보내기 — WT 의 Ctrl+Shift+Enter 는 Ctrl+X → Ctrl+S 로 들어온다. 웹 IDE 터미널에선 Ctrl+Shift+Enter 가 Enter 와 같은 글자라 그대로 보내기
+[tui.keymap.composer]
+submit = ["enter", "ctrl-shift-enter", "ctrl-x ctrl-s"]

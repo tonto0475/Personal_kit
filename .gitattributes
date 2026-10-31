@@ -1,0 +1,3 @@
+# 셸 스크립트는 항상 LF — 윈도우 git(autocrlf)이 내보낼 때 CRLF 로 바꾸면 리눅스 bash 가 $'\r' 오류로 실패한다
+*.sh text eol=lf
+devview/dv text eol=lf

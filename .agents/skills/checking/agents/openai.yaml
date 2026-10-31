@@ -1,0 +1,6 @@
+interface:
+  display_name: "checking"
+  short_description: "인지 설문 — README 요구 · 구현 범위를 «이해했습니까?» 로 확인 · 모르는 항목은 설명 폼"
+
+policy:
+  allow_implicit_invocation: false

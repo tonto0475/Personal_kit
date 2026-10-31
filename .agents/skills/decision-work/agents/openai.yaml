@@ -1,0 +1,6 @@
+interface:
+  display_name: "decision-work"
+  short_description: "결정 문서 섹션 생성 · 구현 · 검증 · 기록 절차"
+
+policy:
+  allow_implicit_invocation: false

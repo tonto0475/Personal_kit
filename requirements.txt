@@ -1,0 +1,30 @@
+# 키트 라이브러리 — 파이썬 3.10 ~ 3.14 판마다 고정(2026-10-29 PyPI 기준 각 판의 최신)
+# 설치: python3 -m pip install -r requirements.txt
+# 판마다 갈리는 것은 pandas · numpy · matplotlib 셋뿐 — 줄 끝 python_version 조건으로 pip 가 맞는 줄만 고른다
+
+# 화면 — ECharts · AG Grid 가 휠 안에 들어 있다 · fastapi · pydantic · uvicorn 도 같이 깔린다(3.10 이상 필요)
+nicegui==3.18.0
+
+# 데이터
+pandas==2.3.3; python_version < "3.11"
+pandas==3.1.0; python_version >= "3.11"
+numpy==2.2.6; python_version < "3.11"
+numpy==2.4.6; python_version == "3.11"
+numpy==2.5.4; python_version >= "3.12"
+# 엑셀 읽기 · 쓰기(pandas read_excel · to_excel) — pandas 가 같이 깔지 않는다
+openpyxl==3.1.5
+
+# 외부 API
+httpx==0.28.1
+
+# 결과물 PNG(그래프 갤러리 차선책) — nicegui[matplotlib] 로 적지 않는다(3.11 리눅스에서 pillow 휠이 없어 실패)
+matplotlib==3.10.9; python_version < "3.11"
+matplotlib==3.11.2; python_version >= "3.11"
+
+# 설정 — 이미 간접으로 깔리지만 키트 코드가 직접 import 하므로 적는다
+PyYAML==6.0.3
+python-dotenv==1.2.4
+
+# 시험 — pytest-asyncio 는 NiceGUI 화면 시험(user 픽스처 = 비동기 픽스처)용
+pytest==9.2.0
+pytest-asyncio==1.4.1

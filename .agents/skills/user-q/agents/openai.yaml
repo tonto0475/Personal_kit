@@ -1,0 +1,6 @@
+interface:
+  display_name: "user-q"
+  short_description: "큐 모드 — 받는 동안 «등록했어.» 만 · 정리 신호에 할 일 표 · 시작 신호에 실행"
+
+policy:
+  allow_implicit_invocation: false

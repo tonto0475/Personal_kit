@@ -1,0 +1,6 @@
+interface:
+  display_name: "ready-end"
+  short_description: "제출 직전 최종 점검 — 보안 위생 · 코드 취약점 · 제출 준비 · 문서 · 서술형 카드"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "main"
+  short_description: "MAIN 세션 역할 · 맥락 · 작업 범위"
+
+policy:
+  allow_implicit_invocation: false

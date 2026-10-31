@@ -1,0 +1,6 @@
+interface:
+  display_name: "ready-start"
+  short_description: "MAIN 전용 환경 세팅 · 확인 — AGENTS · 설정 · 압축 훅 · devview · 재시작 · INSP · 2ND 띄우기 명령"
+
+policy:
+  allow_implicit_invocation: false

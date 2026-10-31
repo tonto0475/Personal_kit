@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>devview</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233574f0'/%3E%3Cpath d='M5 4 2 8l3 4M11 4l3 4-3 4' stroke='white' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+<script>
+  // 기준 주소 고정 — 프록시가 경로 앞에 접두어를 붙여도(…/proxy/8701) 상대 주소가 맞게
+  (function () {
+    var p = location.pathname.replace(/index\.html$/, '');
+    if (!/\/$/.test(p)) p += '/';
+    var b = document.createElement('base');
+    b.href = p;
+    document.head.appendChild(b);
+  })();
+</script>
+<link rel="stylesheet" href="static/md.css">
+<link rel="stylesheet" href="static/app.css">
+</head>
+<body>
+<div class="dv" id="app">
+  <header class="dv-top">
+    <div class="dv-views" id="views">
+      <button class="dv-view is-on" data-view="code" title="코드 (Alt+9 로 오가기)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>코드</button>
+      <button class="dv-view" data-view="git" title="Git 이력 (Alt+9)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>Git<span class="dv-badge" id="gitBadge" hidden title="커밋하지 않은 변경 파일 수"></span></button>
+      <button class="dv-view" data-view="survey" id="svTab" hidden title="설문 (Alt+8)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>설문<span class="dv-badge" id="svBadge" hidden title="답하지 않은 설문 수"></span></button>
+      <button class="dv-view" data-view="app" title="앱 화면 — 다른 포트의 서버를 이 안에서 (Ctrl+Space · 직전 보기와 오가기)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>앱</button>
+    </div>
+    <div class="dv-title"><span id="rootName"></span><span class="dv-branch" id="branchName" hidden></span></div>
+    <div class="dv-top-acts" id="topActs">
+      <button class="dv-ib" data-act="tree" title="파일 트리 (Alt+1)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></button>
+      <button class="dv-ib" data-act="quickOpen" title="파일 찾기 (Shift 두 번 · Ctrl+P)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="dv-ib" data-act="find" title="파일 내용 검색 (Ctrl+Shift+F)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H3"/><path d="M10 12H3"/><path d="M10 18H3"/><circle cx="17" cy="15" r="3"/><path d="m21 19-1.9-1.9"/></svg></button>
+      <button class="dv-ib" data-act="palette" title="기호 넣기 — 커서 자리에 (Alt+.)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg></button>
+      <button class="dv-ib" data-act="capture" title="화면 캡처 → docs/captures/ (Ctrl+Alt+P)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></button>
+      <button class="dv-ib" data-act="help" title="단축키 (F1)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+      <span class="dv-conn" id="conn" title="서버 연결"></span>
+    </div>
+  </header>
+  <div class="dv-main">
+    <section class="dv-code" id="codeView">
+      <aside class="dv-tree" id="tree"></aside>
+      <div class="dv-split is-v" data-split="tree"></div>
+      <div class="dv-edit">
+        <!-- 칸 — 왼쪽(id 있는 것)을 editor.js 가 복제해 오른쪽 칸을 만든다. 탭을 끌어 좌 · 우로 나눠 띄움 -->
+        <div class="dv-panes" id="panes">
+        <div class="dv-pane is-cur" id="paneL">
+        <div class="dv-tabs" id="tabs"></div>
+        <div class="dv-crumbs" id="crumbs" hidden></div>
+        <div class="dv-banner" id="banner" hidden></div>
+        <div class="dv-body" id="editorBody">
+          <div class="dv-monaco" id="monacoHost" hidden></div>
+          <div class="dv-mdhosts" id="mdHosts"></div>
+          <div class="dv-other" id="otherHost" hidden></div>
+          <div class="dv-empty" id="emptyHost">
+            <dl>
+              <dt>파일 찾기</dt><dd>Shift 두 번 · Ctrl+P</dd>
+              <dt>최근 파일</dt><dd>Ctrl+E</dd>
+              <dt>내용 검색</dt><dd>Ctrl+Shift+F</dd>
+              <dt>파일 트리</dt><dd>Alt+1</dd>
+              <dt>Git 이력</dt><dd>Alt+9</dd>
+              <dt>단축키 전체</dt><dd>F1</dd>
+              <dt>나눠 보기</dt><dd>탭을 오른쪽으로 끌기</dd>
+            </dl>
+          </div>
+        </div>
+        </div>
+        </div>
+        <footer class="dv-status" id="status"></footer>
+      </div>
+    </section>
+    <section class="dv-gitview" id="gitView" hidden></section>
+    <section class="dv-svview" id="svView" hidden></section>
+    <section class="dv-appview" id="appView" hidden>
+      <div class="dv-app-bar">
+        <span class="dv-app-lab">PORT</span>
+        <input class="dv-app-port" id="appPort" inputmode="numeric" maxlength="5" spellcheck="false">
+        <button class="dv-ib" id="appReload" title="새로고침 (Enter)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+        <span class="dv-app-url" id="appUrl"></span>
+      </div>
+      <iframe class="dv-app-frame" id="appFrame" title="앱 화면"></iframe>
+    </section>
+  </div>
+  <div class="dv-palette" id="palette" hidden></div>
+  <div class="dv-toasts" id="toasts"></div>
+</div>
+<script src="static/md.bundle.js"></script>
+<!-- 화면 캡처(html2canvas 1.4.1 · MIT) — Monaco 로더보다 먼저 불러야 전역 이름(html2canvas)으로 잡힘 -->
+<script src="static/html2canvas.min.js"></script>
+<script src="static/monaco/vs/loader.js"></script>
+<script type="module" src="static/js/main.js"></script>
+</body>
+</html>

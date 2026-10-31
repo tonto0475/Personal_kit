@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# devview 실행기 — 백그라운드로 띄우고 IDE 미리보기에 넣을 포트를 알려 줌
+#   bash dv                    이 dv 가 든 키트(= 작업 폴더 · docs 가 있는 곳)를 포트 8701 로 · 키트 밖에서 쓰면 ~/workspace → 현재 폴더
+#   bash dv 8702               포트만 바꿔서
+#   bash dv start <폴더> [포트]
+#   bash dv stop [포트]        그 포트로 띄운 devview 만 PID 로 종료
+#   bash dv status [포트]
+set -u
+HERE="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+STATE="$HOME/.devview"
+mkdir -p "$STATE"
+
+cmd=start
+case "${1:-}" in start|stop|status) cmd="$1"; shift ;; esac
+# 기본 폴더 — 키트 = 작업 폴더라 Alt+A · S · D 가 키트 docs 를 열게(2026-10-30) · 키트가 아니면 옛 순서
+default_root() { local kit; kit="$(cd "$HERE/.." && pwd)"
+    if [ -f "$kit/AGENTS.md" ] && [ -d "$kit/docs" ]; then echo "$kit"
+    elif [ -d "$HOME/workspace" ]; then echo "$HOME/workspace"; else pwd; fi; }
+if [ "$cmd" = start ]; then
+    if [[ "${1:-}" =~ ^[0-9]+$ ]]; then root="$(default_root)"; port="$1"
+    else root="${1:-$(default_root)}"; port="${2:-8701}"; fi
+else
+    port="${1:-8701}"
+fi
+pidf="$STATE/devview-$port.pid"
+out="$STATE/devview-$port.out"
+
+# 그 PID 가 정말 devview 인지(다른 프로그램이 같은 PID 를 물려받았을 수 있음)
+alive() {
+    [ -f "$pidf" ] || return 1
+    local pid
+    pid=$(cat "$pidf")
+    [ -r "/proc/$pid/cmdline" ] && tr '\0' ' ' < "/proc/$pid/cmdline" | grep -q "devview.py"
+}
+answers() {
+    python3 -c "import sys,urllib.request; urllib.request.urlopen('http://127.0.0.1:$port/api/info', timeout=1).read()" 2>/dev/null
+}
+
+case "$cmd" in
+start)
+    if alive; then echo "이미 실행 중 (PID $(cat "$pidf")) — IDE 미리보기에 포트 $port"; exit 0; fi
+    nohup python3 "$HERE/devview.py" "$root" --port "$port" > "$out" 2>&1 < /dev/null &
+    echo $! > "$pidf"
+    for _ in $(seq 1 60); do
+        if answers; then echo "devview 실행 — 폴더 $root · IDE 미리보기에 포트 $port   (끄기: bash $HERE/dv stop $port)"; exit 0; fi
+        if ! kill -0 "$(cat "$pidf")" 2>/dev/null; then echo "실행 실패:"; cat "$out"; rm -f "$pidf"; exit 1; fi
+        sleep 0.2
+    done
+    echo "응답 없음 — $out 확인"; exit 1 ;;
+stop)
+    if alive; then kill "$(cat "$pidf")" && echo "정지 (포트 $port)"; else echo "실행 중 아님 (포트 $port)"; fi
+    rm -f "$pidf" ;;
+status)
+    if alive; then echo "실행 중 — PID $(cat "$pidf") · 포트 $port"; else echo "실행 중 아님 (포트 $port)"; fi ;;
+esac

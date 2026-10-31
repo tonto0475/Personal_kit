@@ -1,0 +1,6 @@
+interface:
+  display_name: "survey"
+  short_description: "미논의 질문을 브라우저 설문으로 묻고 결정 문서에 반영"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,69 @@
+:root{--bg:#1e1e1e;--side:#252526;--fg:#dcddde;--muted:#8a8a8a;--line:#3a3a3a;--acc:#7f6df2}
+*{box-sizing:border-box}
+body{margin:0;display:flex;height:100vh;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI","Malgun Gothic","Noto Sans CJK KR",sans-serif}
+
+/* ── 왼쪽 목록 ── */
+nav{width:290px;min-width:200px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column}
+nav input{margin:10px;padding:6px 8px;background:#1b1b1b;border:1px solid var(--line);color:var(--fg);border-radius:4px}
+nav ul{list-style:none;margin:0;padding:0 0 20px;overflow:auto}
+nav li a{display:block;padding:3px 14px;color:var(--fg);text-decoration:none;font-size:13.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav li a:hover{background:#2f2f30}nav li a.on{background:#37373d;color:#fff}
+nav .dir{padding:8px 14px 2px;color:var(--muted);font-size:12px}
+
+/* ── 오른쪽 편집기 ── */
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#top{display:flex;gap:12px;padding:5px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+#rel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#st{margin-left:auto;white-space:nowrap}#st.dirty{color:#e5c07b}#st.bad{color:#ff8a8a}
+#warn{display:none;padding:8px 14px;background:#5a2b2b;color:#ffd7d7;font-size:13px}
+#warn button{margin-left:8px;color:#ddd;background:#3a3a3a;border:1px solid #555;border-radius:4px;padding:2px 10px;cursor:pointer}
+#editor{flex:1;min-height:0}
+.cm-editor{height:100%;font-size:15px}
+.cm-scroller{font-family:inherit !important;line-height:1.65 !important}
+.cm-content{max-width:980px;margin:0 auto;padding:28px 24px 40vh !important}
+.cm-line{padding:0 4px}
+
+/* 기호(원문 노출 상태) */
+.cm-mk{color:var(--muted)}
+
+/* 줄 층 */
+.cm-h{font-weight:700;line-height:1.3}
+.cm-h1{font-size:1.9em;padding-top:.6em !important}
+.cm-h2{font-size:1.5em;padding-top:.5em !important;border-bottom:1px solid var(--line)}
+.cm-h3{font-size:1.25em;padding-top:.4em !important}
+.cm-h4,.cm-h5,.cm-h6{font-size:1.08em}
+.cm-strong{font-weight:700}.cm-em{font-style:italic}.cm-del{text-decoration:line-through}.cm-u{text-decoration:underline}
+.cm-hl{background:#fff88f;color:#111;border-radius:2px}
+.cm-icode{background:#2b2b2b;border-radius:4px;font-family:Consolas,"D2Coding",monospace;font-size:.9em}
+.cm-link{color:#8ab4f8;text-decoration:underline;text-underline-offset:2px;cursor:text}
+.cm-embed{color:#c39af0;font-style:italic}
+.cm-bullet{color:var(--muted);display:inline-block;width:.9em}
+.cm-task{margin:0 .35em 0 0;vertical-align:-2px;cursor:pointer;accent-color:var(--acc)}
+.cm-done{color:var(--muted);text-decoration:line-through}
+.cm-hrw{display:inline-block;width:100%;border-top:1px solid #555;vertical-align:middle}
+.cm-comment{color:#6a9955}
+.cm-commentw,.cm-fmw{color:var(--muted);font-size:12px;border:1px dashed #555;border-radius:4px;padding:0 6px;cursor:pointer}
+.cm-fm{font-family:Consolas,"D2Coding",monospace;font-size:13px;color:var(--muted)}
+
+/* 블록 층 — 인용 · 콜아웃 */
+.cm-q{padding-top:1px;padding-bottom:1px}
+.cm-ctitle{font-weight:600;color:rgb(var(--c));padding-top:6px !important}
+.cm-cicon{margin-right:7px;user-select:none}
+.cm-cfold{margin-left:6px;opacity:.75;cursor:pointer}
+
+/* 코드 블록 */
+.cm-code{font-family:Consolas,"D2Coding","Malgun Gothic",monospace;font-size:13.5px;background:#161616}
+.cm-fence{font-size:4px;line-height:4px}
+
+/* 표 */
+.cm-traw{font-family:Consolas,"D2Coding","Malgun Gothic",monospace;font-size:13.5px}
+.cm-tablew{display:block;padding:4px 0;overflow-x:auto;cursor:text}
+.cm-tablew table{border-collapse:collapse;font-size:.94em}
+.cm-tablew th,.cm-tablew td{border:1px solid var(--line);padding:4px 10px;vertical-align:top}
+.cm-tablew th{background:#2a2a2a}
+.cm-tablew .cm-cell-edit{outline:2px solid #3574f0;outline-offset:-2px;background:#1f2a40;white-space:pre-wrap;font-family:var(--mono,monospace)}
+.cm-tablew code{background:#2b2b2b;padding:1px 5px;border-radius:4px;font-size:.9em}
+.cm-tablew mark{background:#fff88f;color:#111}
+.cm-tablew a,.cm-tablew .wl{color:#8ab4f8}

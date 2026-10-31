@@ -1,0 +1,6 @@
+interface:
+  display_name: "ontology"
+  short_description: "과제 데이터의 대상 · 연결 · 경우 · 규칙 · 계산을 한 장에 적고 물어볼 것을 꺼냄"
+
+policy:
+  allow_implicit_invocation: false
