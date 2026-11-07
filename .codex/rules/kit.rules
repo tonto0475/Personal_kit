@@ -1,0 +1,16 @@
+# 키트 도구 진입점(./kit)은 샌드박스 밖에서 승인 없이 돈다 — kit commit 의 .git 쓰기 · kit hub send 의 codex queue 도 같은 길
+# 설치: ./kit config --apply(scripts/codex_config/merge.py) → ~/.codex/rules/kit.rules · Codex 를 새로 띄워야 읽힌다
+# 🔴 heredoc(<<) · 리다이렉트(>) · $변수가 섞인 명령은 Codex 가 쪼개지 않아 이 규칙이 안 걸린다 → 인자는 --args '<JSON>' 한 줄로
+prefix_rule(
+    pattern = ["./kit"],
+    decision = "allow",
+    justification = "키트 도구(./kit) — 형식 칸 · 그래프 · 커밋을 정해진 길로만 쓴다",
+    match = ["./kit status", "./kit commit docs/hand_off.md -m x", "./kit graph --role main inbox"],
+    not_match = ["kit status", "./kitx status"],
+)
+prefix_rule(
+    pattern = ["kit/kit"],
+    decision = "allow",
+    justification = "키트 폴더 밖(과제 폴더)에서 부르는 키트 도구",
+    match = ["kit/kit status"],
+)

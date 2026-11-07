@@ -1,0 +1,6 @@
+interface:
+  display_name: "2nd-magic"
+  short_description: "허브 마법봉 2ND — 고른 대상 질문에 답(노드 · 문서 · 코드 · 폼 · 책 스티커)"
+
+policy:
+  allow_implicit_invocation: false

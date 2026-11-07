@@ -1,0 +1,6 @@
+interface:
+  display_name: "ontology"
+  short_description: "과제 파악 — 책(bookkit 1차판 → 2차판)과 데이터 지도(확인할 것 · 데이터 사전 · 계산 규칙)를 분석 서브들이 카드로 이어서"
+
+policy:
+  allow_implicit_invocation: false

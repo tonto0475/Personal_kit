@@ -1,0 +1,6 @@
+interface:
+  display_name: "hand-off"
+  short_description: "인계 남기기 — 누락 점검 · WORKLOG 인계 칸 갱신 · 커밋(유저가 부를 때만)"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,17 @@
+# ======= 한 줄 실행 — docker compose up --build (<루트> 에서 · Dockerfile · .dockerignore 와 같은 폴더) =======
+# 과제가 compose 를 말할 때만 복사한다 · 포트를 바꾸면 ports 의 두 숫자와 PORT 를 같이 바꾼다
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    # 바꿀 값만 — 나머지 기본값은 Dockerfile ENV
+    environment:
+      PORT: "3000"
+      DB_PATH: /app/data/app.db
+    # SQLite 파일이 컨테이너를 지워도 남게
+    volumes:
+      - app-data:/app/data
+
+volumes:
+  app-data:

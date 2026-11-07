@@ -1,0 +1,51 @@
+{
+ "contract": "facts",
+ "version": 1,
+ "task": "부품 순회 운반(예시 — 가짜 과제)",
+ "files": [
+  {"name": "stations.csv", "desc": "작업장 좌표", "rows": 8},
+  {"name": "orders.csv", "desc": "주문", "rows": 10}
+ ],
+ "numbers": {
+  "n_orders": 10,
+  "n_orders_ok": 8,
+  "qty_total": 40,
+  "qty_total_naive": 35,
+  "lower_id_rows": 1,
+  "dup_orders": 1,
+  "blank_qty": 1
+ },
+ "traps": [
+  {"id": "T1", "file": "orders.csv", "lines": [4, 4], "what": "작업장 번호가 소문자로 섞여 있다", "cat": "파이프라인",
+   "raw": [["정상", null], ["O02,P2,6,06:00", "good"], ["· 섞인 줄", null], ["O03,p3,5,06:00", "bad"], ["— p3 은 stations.csv 의 P3 과 글자가 달라 짝이 사라진다", null]],
+   "measured": {"정리한 값": 40, "그냥 읽은 값": 35},
+   "naive": "수량 합이 정리하면 **{F['qty_total']}개**인데 그냥 이으면 !!{F['qty_total_naive']}개!!. 에러는 나지 않는다.",
+   "fix": "작업장 번호를 대문자로 맞춰 읽고, 바꾼 행 수({F['lower_id_rows']}행)를 리포트에 남긴다.", "big": true,
+   "fn": {"짝": "두 표에서 같은 작업장을 잇는 열. 글자가 하나라도 다르면 에러 없이 짝이 사라진다"}},
+  {"id": "T2", "file": "orders.csv", "lines": [11, 11], "what": "같은 주문이 두 줄", "cat": "파이프라인",
+   "raw": [["orders.csv", null], ["O08,P8,4,06:00", "bad"], ["— 9번째 · 11번째 줄이 글자까지 같다", null]],
+   "naive": "그대로 합치면 작업장8 수량이 4 → !!8개!!로 두 배가 된다.", "fix": "주문 번호로 하나만 남기고, 지운 줄 수({F['dup_orders']}줄)를 리포트에 남긴다.", "big": true}
+ ],
+ "defects": [
+  {"id": "D1", "file": "orders.csv", "what": "**작업장 번호 소문자**(1행)", "bad": "p3", "good": "P3", "fix": "대문자로 바꿔 읽는다. 바꾼 행 수를 리포트에 남긴다."},
+  {"id": "D2", "file": "orders.csv", "what": "**수량 빈 칸**(1행)", "bad": "O09,P2,,06:40", "good": "O02,P2,6,06:00", "fix": "계획에서 빼고 리포트 · 질문에 올린다."},
+  {"id": "D3", "file": "orders.csv", "what": "**같은 주문 두 줄**(1쌍)", "bad": "O08,P8,4,06:00", "good": "주문 번호마다 한 줄", "fix": "하나만 남긴다. 지운 줄을 리포트에 남긴다."}
+ ],
+ "facts": [
+  {"id": "F1", "title": "주문은 모두 06:00 한 묶음이다(06:40 한 건 빼고)", "cat": "알고리즘", "raw": [["orders.csv", null], ["O01,P1,4,06:00", ""]],
+   "effect": "한 시각에 수량 {F['qty_total']}개가 몰린다 — 정원 12개면 차가 적어도 4대 든다.", "do": "06:40 주문은 따로 한 번 더 도는지 담당자에게 묻는다."}
+ ],
+ "report": [
+  {"id": "P1", "file": "orders.csv", "line": 4, "kind": "작업장 번호 소문자", "raw": "p3", "action": "고쳐서 적용"},
+  {"id": "P2", "file": "orders.csv", "line": 10, "kind": "수량 빈 칸", "raw": "O09,P2,,06:40", "action": "빼고 적용 · 질문"}
+ ],
+ "figures": {
+  "그림_자료띠": {"title": "orders.csv 를 줄 번호 구간으로 나누면", "total": 10,
+   "segments": [{"a": 2, "b": 3, "color": "#c7d2e6", "inside": "정상", "inside_tone": "ink"},
+                {"a": 4, "b": 4, "color": "#dc2626", "at": "below", "callout_tone": "ng", "callout": "4줄 — 작업장 번호 소문자"},
+                {"a": 5, "b": 9, "color": "#c7d2e6", "inside": "정상", "inside_tone": "ink"},
+                {"a": 10, "b": 11, "color": "#7c3aed", "at": "below", "x": "right", "callout_tone": "pur", "callout": "10~11줄 빈 칸 · 중복"}],
+   "compare": {"title": "수량 합", "rows": [["정리한 뒤", 40, "40개", "ok"], ["그냥 읽으면", 35, "35개", "ng"]], "note": "에러 없이 이 숫자가 나온다"},
+   "label": "주문 파일 구조"}
+ }
+}

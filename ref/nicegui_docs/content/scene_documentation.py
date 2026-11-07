@@ -1,0 +1,447 @@
+from pathlib import Path
+
+from nicegui import ui
+
+from ..windows import code_window
+from . import doc
+
+TORUS_KNOT_JS = (Path(__file__).parent / 'static' / 'torus_knot.js').read_text()
+
+
+@doc.demo(ui.scene)
+def main_demo() -> None:
+    with ui.scene().classes('w-full h-64') as scene:
+        scene.axes_helper()
+        scene.sphere().material('#4488ff').move(2, 2)
+        scene.cylinder(1, 0.5, 2, 20).material('#ff8800', opacity=0.5).move(-2, 1)
+        scene.extrusion([[0, 0], [0, 1], [1, 0.5]], 0.1).material('#ff8888').move(2, -1)
+
+        with scene.group().move(z=2):
+            scene.box().move(x=2)
+            scene.box().move(y=2).rotate(0.25, 0.5, 0.75)
+            scene.box(wireframe=True).material('#888888').move(x=2, y=2)
+
+        scene.line([-4, 0, 0], [-4, 2, 0]).material('#ff0000')
+        scene.curve([-4, 0, 0], [-4, -1, 0], [-3, -1, 0], [-3, 0, 0]).material('#008800')
+
+        logo = 'https://avatars.githubusercontent.com/u/2843826'
+        scene.texture(logo, [[[0.5, 2, 0], [2.5, 2, 0]],
+                             [[0.5, 0, 0], [2.5, 0, 0]]]).move(1, -3)
+
+        teapot = 'https://upload.wikimedia.org/wikipedia/commons/9/93/Utah_teapot_(solid).stl'
+        scene.stl(teapot).scale(0.2).move(-3, 4)
+
+        avocado = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Avocado/glTF-Binary/Avocado.glb'
+        scene.gltf(avocado).scale(40).move(-2, -3, 0.5)
+
+        scene.text('2D', 'background: rgba(0, 0, 0, 0.2); border-radius: 5px; padding: 5px').move(z=2)
+        scene.text3d('3D', 'background: rgba(0, 0, 0, 0.2); border-radius: 5px; padding: 5px').move(y=-2).scale(.05)
+
+
+@doc.demo('Handling Click Events', '''
+    You can use the `on_click` argument to `ui.scene` to handle click events.
+    The callback receives a `SceneClickEventArguments` object with the following attributes:
+
+    - `click_type`: the type of click ("click" or "dblclick").
+    - `button`: the button that was clicked (1, 2, or 3).
+    - `alt`, `ctrl`, `meta`, `shift`: whether the alt, ctrl, meta, or shift key was pressed.
+    - `hits`: a list of `SceneClickEventHit` objects, sorted by distance from the camera.
+
+    The `SceneClickEventHit` object has the following attributes:
+
+    - `object_id`: the id of the object that was clicked.
+    - `object_name`: the name of the object that was clicked.
+    - `x`, `y`, `z`: the x, y and z coordinates of the click.
+''')
+def click_events() -> None:
+    from nicegui import events
+
+    def handle_click(e: events.SceneClickEventArguments):
+        hit = e.hits[0]
+        name = hit.object_name or hit.object_id
+        ui.notify(f'You clicked on the {name} at ({hit.x:.2f}, {hit.y:.2f}, {hit.z:.2f})')
+
+    with ui.scene(width=285, height=220, on_click=handle_click) as scene:
+        scene.sphere().move(x=-1, z=1).with_name('sphere')
+        scene.box().move(x=1, z=1).with_name('box')
+
+
+@doc.demo('Context menu for 3D objects', '''
+    This demo shows how to create a context menu for 3D objects.
+    By setting the `click_events` argument to `['contextmenu']`, the `handle_click` function will be called on right-click.
+    It clears the context menu and adds items based on the object that was clicked.
+''')
+def context_menu_for_3d_objects():
+    from nicegui import events
+
+    def handle_click(e: events.SceneClickEventArguments) -> None:
+        name = next((hit.object_name for hit in e.hits if hit.object_name), None)
+        with context_menu.clear():
+            if name == 'sphere':
+                ui.item('SPHERE').classes('font-bold')
+                ui.menu_item('inspect')
+                ui.menu_item('open')
+            if name == 'box':
+                ui.item('BOX').classes('font-bold')
+                ui.menu_item('rotate')
+                ui.menu_item('move')
+
+    with ui.element():
+        context_menu = ui.context_menu()
+        with ui.scene(width=285, height=220, on_click=handle_click,
+                      click_events=['contextmenu']) as scene:
+            scene.sphere().move(x=-1, z=1).with_name('sphere')
+            scene.box().move(x=1, z=1).with_name('box')
+
+
+@doc.demo('Draggable objects', '''
+    You can make objects draggable using the `.draggable` method.
+    There is an optional `on_drag_start` and `on_drag_end` argument to `ui.scene` to handle drag events.
+    The callbacks receive a `SceneDragEventArguments` object with the following attributes:
+
+    - `type`: the type of drag event ("dragstart" or "dragend").
+    - `object_id`: the id of the object that was dragged.
+    - `object_name`: the name of the object that was dragged.
+    - `x`, `y`, `z`: the x, y and z coordinates of the dragged object.
+
+    You can also use the `drag_constraints` argument to set comma-separated JavaScript expressions
+    for constraining positions of dragged objects.
+''')
+def draggable_objects() -> None:
+    from nicegui import events
+
+    def handle_drag(e: events.SceneDragEventArguments):
+        ui.notify(f'You dropped the sphere at ({e.x:.2f}, {e.y:.2f}, {e.z:.2f})')
+
+    with ui.scene(width=285, height=220,
+                  drag_constraints='z = 1', on_drag_end=handle_drag) as scene:
+        sphere = scene.sphere().move(z=1).draggable()
+
+    ui.switch('draggable sphere',
+              value=sphere.draggable_,
+              on_change=lambda e: sphere.draggable(e.value))
+
+
+@doc.demo('Subscribe to the drag event', '''
+    By default, a draggable object is only updated when the drag ends to avoid performance issues.
+    But you can explicitly subscribe to the "drag" event to get immediate updates.
+    In this demo we update the position and size of a box based on the positions of two draggable spheres.
+''')
+def immediate_updates() -> None:
+    from nicegui import events
+
+    with ui.scene(width=285, drag_constraints='z=0') as scene:
+        box = scene.box(1, 1, 0.2).move(0, 0).material('Orange')
+        sphere1 = scene.sphere(0.2).move(0.5, -0.5).material('SteelBlue').draggable()
+        sphere2 = scene.sphere(0.2).move(-0.5, 0.5).material('SteelBlue').draggable()
+
+    def handle_drag(e: events.GenericEventArguments) -> None:
+        x1 = sphere1.x if e.args['object_id'] == sphere2.id else e.args['x']
+        y1 = sphere1.y if e.args['object_id'] == sphere2.id else e.args['y']
+        x2 = sphere2.x if e.args['object_id'] == sphere1.id else e.args['x']
+        y2 = sphere2.y if e.args['object_id'] == sphere1.id else e.args['y']
+        box.move((x1 + x2) / 2, (y1 + y2) / 2).scale(x2 - x1, y2 - y1, 1)
+    scene.on('drag', handle_drag)
+
+
+@doc.demo('Rendering point clouds', '''
+    You can render point clouds using the `point_cloud` method.
+    The `points` argument is a list of point coordinates, and the `colors` argument is a list of RGB colors (0..1).
+    You can update the cloud using its `set_points()` method.
+''')
+def point_clouds() -> None:
+    import numpy as np
+
+    def generate_data(frequency: float = 1.0):
+        x, y = np.meshgrid(np.linspace(-3, 3), np.linspace(-3, 3))
+        z = np.sin(x * frequency) * np.cos(y * frequency) + 1
+        points = np.dstack([x, y, z]).reshape(-1, 3)
+        colors = points / [6, 6, 2] + [0.5, 0.5, 0]
+        return points, colors
+
+    with ui.scene().classes('w-full h-64') as scene:
+        points, colors = generate_data()
+        point_cloud = scene.point_cloud(points, colors, point_size=0.1)
+
+    ui.slider(min=0.1, max=3, step=0.1, value=1) \
+        .on_value_change(lambda e: point_cloud.set_points(*generate_data(e.value)))
+
+
+@doc.demo('Wait for Initialization', '''
+    You can wait for the scene to be initialized with the `initialized` method.
+    This demo animates a camera movement after the scene has been fully loaded.
+    If the browser cannot create a WebGL renderer, `initialized` raises a `RuntimeError`.
+''')
+async def wait_for_init() -> None:
+    # @ui.page('/')
+    # async def page():
+    with ui.column():  # HIDE
+        with ui.scene(width=285, height=220) as scene:
+            scene.sphere()
+            await scene.initialized()
+            scene.move_camera(x=1, y=-1, z=1.5, duration=2)
+
+
+@doc.demo('Changing Controls', '''
+    You can change the controls of a scene using the `control_type` argument.
+
+    The available control types are:
+
+    - **"orbit" (default)**:
+      Works for most applications.
+      But the camera stops when it orbits over the "north" and "south" poles to maintain a fixed up direction.
+    - "trackball":
+      Similar to orbit, but it keeps going around the poles.
+      It is a good choice for applications where camera flexibility is important.
+    - "map":
+      Allows to pan and zoom like in a 3D map view application.
+      Good for map-like applications such as in [RoSys](https://rosys.io).
+''')
+def change_controls() -> None:
+    ui.label('Orbit controls (default)')
+    with ui.scene(width=285, height=220):
+        ui.scene.sphere()
+
+    ui.label('Trackball controls')
+    with ui.scene(width=285, height=220, control_type='trackball'):
+        ui.scene.sphere()
+
+    ui.label('Map controls')
+    with ui.scene(width=285, height=220, control_type='map'):
+        ui.scene.sphere()
+
+
+@doc.demo(ui.scene_view)
+def scene_views():
+    with ui.grid(columns=2).classes('w-full'):
+        with ui.scene().classes('h-64 col-span-2') as scene:
+            teapot = 'https://upload.wikimedia.org/wikipedia/commons/9/93/Utah_teapot_(solid).stl'
+            scene.stl(teapot).scale(0.3)
+
+        with ui.scene_view(scene).classes('h-32') as scene_view1:
+            scene_view1.move_camera(x=1, y=-3, z=5)
+
+        with ui.scene_view(scene).classes('h-32') as scene_view2:
+            scene_view2.move_camera(x=0, y=4, z=3)
+
+
+@doc.demo('Frame Rate and Statistics', '''
+    You can configure the target frames per second (FPS) of the scene using the `fps` argument.
+    The default value is 20.
+    To see the changes for yourself, enable the statistics display using the `show_stats` argument.
+    This demo shows how to set the frame rate to 40 FPS for the main scene and 5 FPS for the static view.
+    The FPS is generally lower than the target frame rate, because the browser also takes some time to render the scene.
+    This also applies to `ui.scene_view`.
+
+    *Added in version 3.2.0*
+''')
+def fps_stats_configuration() -> None:
+    ui.label('Higher frame rate for the movable view')
+    with ui.scene(fps=40, show_stats=True).classes('w-full h-32') as scene:
+        scene.sphere()
+
+    ui.label('Lower frame rate for the static view')
+    with ui.scene_view(scene, fps=5, show_stats=True).classes('w-full h-32') as scene_view:
+        scene_view.move_camera(x=1, y=-3, z=5)
+
+
+@doc.demo('Camera Parameters', '''
+    You can use the `camera` argument to `ui.scene` to use a custom camera.
+    This allows you to set the field of view of a perspective camera or the size of an orthographic camera.
+''')
+def orthographic_camera() -> None:
+    with ui.scene(camera=ui.scene.orthographic_camera(size=2)) \
+            .classes('w-full h-64') as scene:
+        scene.box()
+
+
+@doc.demo('Get current camera pose', '''
+    Using the `get_camera` method you can get a dictionary of current camera parameters like position, rotation, field of view and more.
+    This demo shows how to continuously move a sphere towards the camera.
+    Try moving the camera around to see the sphere following it.
+''')
+def camera_pose() -> None:
+    with ui.scene().classes('w-full h-64') as scene:
+        ball = scene.sphere()
+
+    async def move():
+        camera = await scene.get_camera()
+        if camera is not None:
+            ball.move(x=0.95 * ball.x + 0.05 * camera['position']['x'],
+                      y=0.95 * ball.y + 0.05 * camera['position']['y'],
+                      z=1.0)
+    ui.timer(0.1, move)
+
+
+@doc.demo('Custom Background', '''
+    You can set a custom background color using the `background_color` parameter of `ui.scene`.
+''')
+def custom_background() -> None:
+    with ui.scene(background_color='#222').classes('w-full h-64') as scene:
+        scene.box()
+
+
+@doc.demo('Custom Grid', '''
+    You can set custom grid parameters using the `grid` parameter of `ui.scene`.
+    It accepts a tuple of two integers, the first one for the grid size and the second one for the number of divisions.
+''')
+def custom_grid() -> None:
+    with ui.scene(grid=(3, 2)).classes('w-full h-64') as scene:
+        scene.sphere()
+
+
+@doc.demo('Custom Composed 3D Objects', '''
+    This demo creates a custom class for visualizing a coordinate system with colored X, Y and Z axes.
+    This can be a nice alternative to the default `axes_helper` object.
+''')
+def custom_composed_objects() -> None:
+    import math
+
+    class CoordinateSystem(ui.scene.group):
+
+        def __init__(self, name: str, *, length: float = 1.0) -> None:
+            super().__init__()
+
+            with self:
+                for label, color, rx, ry, rz in [
+                    ('x', '#ff0000', 0, 0, -math.pi / 2),
+                    ('y', '#00ff00', 0, 0, 0),
+                    ('z', '#0000ff', math.pi / 2, 0, 0),
+                ]:
+                    with ui.scene.group().rotate(rx, ry, rz):
+                        ui.scene.cylinder(0.02 * length, 0.02 * length, 0.8 * length) \
+                            .move(y=0.4 * length).material(color)
+                        ui.scene.cylinder(0, 0.1 * length, 0.2 * length) \
+                            .move(y=0.9 * length).material(color)
+                        ui.scene.text(label, style=f'color: {color}') \
+                            .move(y=1.1 * length)
+                ui.scene.text(name, style='color: #808080')
+
+    with ui.scene().classes('w-full h-64'):
+        CoordinateSystem('origin')
+        CoordinateSystem('custom frame').move(-2, -2, 1).rotate(0.1, 0.2, 0.3)
+
+
+@doc.demo('Custom Three.js Objects', '''
+    If the primitives bundled in NiceGUI are not enough for your needs, or if you want to run
+    complex logic on the client side, you can create your own 3D objects.
+    Subclass `Object3D` and pass `component=` with the path to a JavaScript module,
+    resolved relative to the Python file.
+    Arguments passed to `super().__init__(...)` are forwarded positionally to the module's factory method.
+    Additional Python methods can dispatch to same-named methods of the JavaScript class via `run_method`.
+
+    The JavaScript module for this demo is shown below.
+
+    *Added in version 3.16.0*
+''')
+def custom_3d_scene_objects() -> None:
+    # from nicegui import app
+    from nicegui.elements.scene import Object3D
+
+    class TorusKnot(Object3D, component='static/torus_knot.js'):
+        def __init__(self, *, radius: float, tube: float, p: int, q: int) -> None:
+            super().__init__(radius, tube, p, q)
+
+        def update_topology(self, p: int, q: int) -> None:
+            self.run_method('update_topology', p, q)
+
+    with ui.scene().classes('w-full h-96'):
+        knot = TorusKnot(radius=1.5, tube=0.4, p=2, q=3).move(z=1)
+
+    ui.label('Winds around axis:')
+    p_slider = ui.slider(min=1, max=10, value=2)
+    ui.label('Winds around interior:')
+    q_slider = ui.slider(min=1, max=10, value=3)
+
+    p_slider.on_value_change(lambda e: knot.update_topology(e.value, q_slider.value))
+    q_slider.on_value_change(lambda e: knot.update_topology(p_slider.value, e.value))
+
+
+@doc.part('')
+def custom_object_javascript_module() -> None:
+    ui.markdown('''
+        **The JavaScript module**
+
+        The JavaScript module referenced via `component=` — `static/torus_knot.js` in the demo above —
+        default-exports a class.
+        NiceGUI instantiates it once per scene object and calls one of two entry points to build the mesh:
+
+        - `create_geometry(...args)` returns a `THREE.BufferGeometry`.
+          NiceGUI wraps it in a `MeshPhongMaterial`
+          (or a wireframe `LineSegments` if `wireframe=True` is passed to `super().__init__()`),
+          so the built-in `material()`, `move()`, `scale()` etc. work automatically.
+        - `create_mesh(...args)` returns a `THREE.Object3D` for full control.
+          Use it when the object is more than a single geometry
+          or when your own methods need ongoing access to the mesh, like `update_topology` below.
+    ''')
+
+    code_window(title='torus_knot.js', language='js', code=TORUS_KNOT_JS).classes('w-full')
+
+
+@doc.part('')
+def materials_for_composite_objects() -> None:
+    ui.markdown('''
+        **Materials for composite objects**
+
+        When Python calls `material(...)`, NiceGUI applies color, opacity and side to the material of the mesh.
+        A composite object built from several sub-meshes can define the optional `apply_material` hook
+        to decide which parts the material applies to.
+        The hook receives a single options object;
+        destructure the fields you need, so future NiceGUI versions can add fields without breaking your component.
+        The `apply_material` function exported by the `nicegui-scene` module implements NiceGUI's material semantics
+        (`color=None` enables vertex colors, `side` is "front", "back" or "both").
+    ''')
+
+    code_window(title='robot.js', language='js', code='''
+        import { apply_material, THREE } from "nicegui-scene";
+
+        export default class Robot {
+          create_mesh() {
+            this.body = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 2), new THREE.MeshPhongMaterial({ transparent: true }));
+            this.eyes = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshPhongMaterial({ color: "black" }));
+            this.eyes.position.set(0.5, 0, 1);
+            return new THREE.Group().add(this.body, this.eyes);
+          }
+
+          apply_material(options) {
+            apply_material(this.body.material, options); // tint only the body, keep the eyes black
+          }
+        }
+    ''').classes('w-full')
+
+    ui.markdown('''
+        There is also an optional `created()` hook which is called right after the mesh has been built.
+
+        Note that NiceGUI sends every object to the client when the scene is initialized
+        and re-creates it after a lost WebGL context,
+        both from its constructor arguments (`self.args`) and built-in state like position, rotation and material.
+        State changed only via `run_method` is not included,
+        and calls made before the scene is initialized are dropped —
+        keep `self.args` up to date in mutating methods so created objects reflect the latest state.
+    ''')
+
+
+@doc.demo('Attaching/detaching objects', '''
+    To add or remove objects from groups you can use the `attach` and `detach` methods.
+    The position and rotation of the object are preserved so that the object does not move in space.
+    But note that scaling is not preserved.
+    If either the parent or the object itself is scaled, the object shape and position can change.
+
+    *Added in version 2.7.0*
+''')
+def attach_detach() -> None:
+    import math
+    import time
+
+    with ui.scene().classes('w-full h-64') as scene:
+        with scene.group() as group:
+            a = scene.box().move(-2)
+            b = scene.box().move(0)
+            c = scene.box().move(2)
+
+    ui.timer(0.1, lambda: group.move(y=math.sin(time.time())).rotate(0, 0, time.time()))
+    ui.button('Detach', on_click=a.detach)
+    ui.button('Attach', on_click=lambda: a.attach(group))
+
+
+doc.reference(ui.scene)

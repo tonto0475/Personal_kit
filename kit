@@ -1,0 +1,6 @@
+#!/bin/sh
+# 키트 도구 진입점 — ./kit help · 같은 폴더의 scripts/kit/kit.py 를 부른다(키트 .venv → python3 → 윈도우 py -3 순)
+D="$(cd "$(dirname "$0")" && pwd)"
+if [ -x "$D/.venv/bin/python" ]; then exec "$D/.venv/bin/python" "$D/scripts/kit/kit.py" "$@"; fi
+if python3 -c "" >/dev/null 2>&1; then exec python3 "$D/scripts/kit/kit.py" "$@"; fi
+exec py -3 "$D/scripts/kit/kit.py" "$@"

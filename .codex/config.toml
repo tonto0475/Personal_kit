@@ -1,0 +1,59 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+# 대회 키트용 Codex 프로젝트 설정 — 과제 폴더 맨 위 .codex/config.toml 로 옮기고, codex 첫 실행 때 폴더 신뢰(trust)에 동의해야 적용된다
+# 검증: codex 0.164(윈도우) · 0.163(WSL) — --strict-config · 키맵 충돌 검사 통과 (2026-10-29)
+# 키맵에 충돌 · 오타가 있어도 0.163 화면은 거부하지 않고 뜬다 — 그 단축키만 조용히 안 먹을 수 있다(2026-10-31 실측). 고친 뒤 codex 를 띄워 ? 단축키 목록으로 확인
+# 적용 확인(2026-10-31 · 연습 IDE): 이 키들로 띄우면 상태줄이 9칸 · 기록 보기가 ^o(기본값은 상태줄 «모델 · 폴더» · ^t) · --strict-config 통과(모르는 키 없음)
+# 근거: 공식 설정 문서 · codex 소스 태그 0.164 / 0.163 조사(2026-10-29)
+
+# 대회 중 업데이트 안내로 시간을 쓰지 않게
+check_for_update_on_startup = false
+
+# 답 길이 — gpt-6.1-sol 기본값은 low(models_cache 실측). high = 개념을 차근차근 짚어 설명(유저가 low · medium · high 같은 질문 비교 후 지정 11/02)
+model_verbosity = "high"
+# Fast 모드 기본 켜기(세션 중 /fast 로 끄고 켬) — 같은 모델을 빠르게 · 대신 요금이 2 ~ 2.5배(유저 지정 11/02)
+service_tier = "fast"
+
+# 데스크톱 화면 조작 도구는 대회 금지 사항(자동 조작)이라 끔 — 나머지 도구는 그대로(유저 설문 판단4-6 · 10/29)
+# fast_mode — Fast 모드 조작 켜기(기본도 켜짐이지만 공식 문서대로 service_tier 와 같이 명시)
+[features]
+computer_use = false
+fast_mode = true
+
+# 서브의 서브(max_depth)는 설정으로 막지 않는다 — 필요할 때가 있어 역할 스킬 규칙으로만 제한(유저 결정 11/01 · 10/29 의 max_depth = 1 을 뺌)
+
+# 서브 V2 켜기 + 서브 기다리기 하한(유저 지정 11/04) — 10초 wait_agent 를 반복하며 깨어날 때마다 맥락 전체가 다시 들어가던 낭비(10번 리허설 MAIN 522만 토큰)를 설정으로 막는다
+# 최소 · 기본 10분 · 최대 1시간 — wait_agent 는 서브 완료 · 중간 메시지 · 유저 입력에 일찍 깨므로 길게 잡아도 기다리지 않는다
+# 깊이 · 도구 숨기기는 일부러 넣지 않는다(서브의 서브가 필요할 때가 있다 — V2 는 max_depth 를 쓰지 않음)
+# 근거: 공식 설정 스키마 · Linux codex 0.163 --strict-config 로딩 확인(2026-11-04 Codex 조사 · 바탕 화면 codex_토큰누수_점검_결과.md 4-2)
+[features.multi_agent_v2]
+enabled = true
+min_wait_timeout_ms = 600000
+default_wait_timeout_ms = 600000
+max_wait_timeout_ms = 3600000
+
+# 서브 상한 8(유저 지정 11/04) — 없으면 기본 3 이라 넷째를 띄울 때 쉬는 서브가 앞에서부터 notLoaded 로 내려간다(0.163 실측: 7개 중 4개 내려감 · 8 이면 7개 모두 유지)
+[agents]
+max_concurrent_threads_per_session = 8
+
+[tui]
+# 창이 30분 넘게 비활성이면 모델을 불러 요약을 만든다 — 두 세션 운영 때 토큰 낭비라 끔(/recap 은 손으로 가능)
+auto_recap = false
+show_tooltips = false
+# 휠 한 칸에 움직이는 줄 수 — 최근 기본값이 3 → 1 로 바뀌어 대화 기록 스크롤이 느림 · 10 은 너무 빨라 8(유저 지정 10/30) · 0.163 · 0.164 둘 다 있는 설정
+mouse_scroll_speed = 8.0
+# 상태줄 9개 — 모델+강도 · 승인 모드 · 작업 폴더 · 맥락 쓴 % · 실행 상태 · 쓴 토큰 · 누적 입력 · 누적 출력 · 계획 진행
+# 사용 한도 칸은 API 키 방식이면 빈칸이라 뺌 · 프로젝트 경로는 대회에서 작업 폴더와 같아 뺌(유저 설문 판단4-4 · 10/29)
+status_line = ["model-with-reasoning", "approval-mode", "current-dir", "context-used", "run-state", "used-tokens", "total-input-tokens", "total-output-tokens", "task-progress"]
+
+# ======= 단축키 — Claude Code 와 맞춤 =======
+# 대화 기록 보기 = Ctrl+O · 마지막 답 복사 = Alt+C · 기록 화면 닫기 = Ctrl+O 추가 (2026-10-27)
+[tui.keymap.global]
+open_transcript = "ctrl-o"
+copy = "alt-c"
+
+[tui.keymap.pager]
+close_transcript = ["ctrl-o", "ctrl-t"]
+
+# 보내기 — WT 의 Ctrl+Shift+Enter 는 Ctrl+X → Ctrl+S 로 들어온다. 웹 IDE 터미널에선 Ctrl+Shift+Enter 가 Enter 와 같은 글자라 그대로 보내기
+[tui.keymap.composer]
+submit = ["enter", "ctrl-shift-enter", "ctrl-x ctrl-s"]

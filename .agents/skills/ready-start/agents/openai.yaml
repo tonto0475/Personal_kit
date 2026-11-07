@@ -1,0 +1,6 @@
+interface:
+  display_name: "ready-start"
+  short_description: "준비 전용 세션 — AGENTS · 설정 · 압축 훅 · devview · MAIN · 2ND 띄우기 명령"
+
+policy:
+  allow_implicit_invocation: false

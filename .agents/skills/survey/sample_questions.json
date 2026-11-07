@@ -1,0 +1,8 @@
+{"title": "설문 흐름 시험", "questions": [
+  {"id": "시험 #1", "question": "시험용 질문 1 — 아무거나 고르세요",
+   "context": "설문 제출 뒤 Codex 가 채팅 없이 결과를 받아 이어서 일하는지 보는 시험이다.\n어느 답을 골라도 된다.",
+   "options": [{"label": "(추천) A", "detail": "고르면 Codex 가 «A 선택» 을 보고해야 한다"}, {"label": "B", "detail": "고르면 Codex 가 «B 선택» 을 보고해야 한다"}]},
+  {"id": "시험 #2", "question": "시험용 질문 2 — 메모 칸에 아무 글자나 적어 보세요",
+   "context": "메모가 결과의 memo 로 넘어가는지 확인한다.",
+   "options": [{"label": "(추천) 확인", "detail": "메모도 같이 적는다"}, {"label": "건너뜀", "detail": "메모 없이 제출"}]}
+]}

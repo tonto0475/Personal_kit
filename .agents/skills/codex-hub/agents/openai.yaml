@@ -1,0 +1,6 @@
+interface:
+  display_name: "codex-hub"
+  short_description: "devview 허브 — 등록 · 상태 줄 · 누적 한 줄"
+
+policy:
+  allow_implicit_invocation: false

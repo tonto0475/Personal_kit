@@ -1,0 +1,6 @@
+interface:
+  display_name: "precheck"
+  short_description: "사전 체험 왕복 점검 — 큐 · 허브 · 서브 8개 · 설문 · 스티커 · 그래프 마법봉 · 결과 precheck.md"
+
+policy:
+  allow_implicit_invocation: false

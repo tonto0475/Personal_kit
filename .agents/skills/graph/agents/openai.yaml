@@ -1,0 +1,6 @@
+interface:
+  display_name: "graph"
+  short_description: "그래프 그리기 — 준비판(온톨로지 끝에 바로 만들 틀) · 논의 반영(논의 뒤 보강) · 명세"
+
+policy:
+  allow_implicit_invocation: false

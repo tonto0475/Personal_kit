@@ -1,0 +1,6 @@
+interface:
+  display_name: "hand-on"
+  short_description: "압축 직후 이어받기 — 인계 칸 · 참조 문서 · 압축 직전 10턴을 읽고 세 줄 요약"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "main-magic"
+  short_description: "허브 마법봉 MAIN — 고른 작업 · 검증 · 질문 노드를 종류로 서브에게 나눈다"
+
+policy:
+  allow_implicit_invocation: false
